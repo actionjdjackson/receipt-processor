@@ -1,6 +1,16 @@
 # receipt-processor
 
-To run this app, browse to this directory and run the following command
+#### To run the app as a docker container
+To run this app as a docker container, browse to this directory and run:
+```
+docker build --tag actionjdjackson/receipt-processor
+```
+Then run the following command to start up the webservice:
+```
+docker run --publish 80:80 actionjdjackson/receipt-processor
+```
+#### To run the app as a standalone command on your system
+To run this app standalone, browse to this directory and run the following command:
 ```
 go install actionjdjackson/receipt-processor
 ```
