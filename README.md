@@ -8,7 +8,7 @@ And then run the created app, called receipt-processor
 ```
 receipt-processor
 ```
-The app will host on localhost:80
+The app will host the web service on localhost:80
 
 You may need to install gorilla/mux by running the following command
 ```
