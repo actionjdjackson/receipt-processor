@@ -59,10 +59,17 @@ func main() {
       json.NewDecoder(r.Body).Decode(&receipt)
       // Process the receipt and store returned id value in var id
       var id string = processReceipt(receipt)
-      // Create the id struct with the value of id
-      receiptId := Id { Id: id }
-      // Make JSON version of the struct, and write to http.ResponseWriter
-      json.NewEncoder(w).Encode(receiptId)
+      // If there was an error during processing
+      if id == "Error During Processing" {
+        fmt.Fprintf(w, "Error Encountered During Processing of Receipt Data." +
+                       " Receipt not stored. Expected a parseable number," +
+                       " time, or date.")
+      } else {
+        // Create the id struct with the value of id
+        receiptId := Id { Id: id }
+        // Make JSON version of the struct, and write to http.ResponseWriter
+        json.NewEncoder(w).Encode(receiptId)
+      }
     })
 
     // Handle incoming GET requests on /receipts/{id}/points
@@ -86,11 +93,17 @@ func main() {
     http.ListenAndServe(":80", r)
 }
 
-// The function for processing the receipt coming in via the /receipts/process
+// The function for processing the receipt coming in via the /receipts/process route
 // Which returns a string that is the id for the receipt being processed
 func processReceipt( receipt Receipt ) string {
     // First, tally up the points and store it in the receipt struct
     receipt.Points = tallyPoints(receipt)
+    // If the tallyPoints function encountered an error during parsing strings,
+    // That is, if it returned -1,
+    if receipt.Points == -1 {
+      // Return error message to main function
+      return "Error During Processing"
+    }
     // Second, create a random string of characters and numbers and dashes
     receiptId := String(32)
     // If, by some off chance we already have the same id in use in the map,
@@ -109,6 +122,7 @@ func tallyPoints( receipt Receipt ) int {
 
     // Set totalPoints to zero for starters
     var totalPoints int = 0
+
 
     // Grab the retailer string from the receipt being processed
     var retailer string = receipt.Retailer
@@ -132,6 +146,7 @@ func tallyPoints( receipt Receipt ) int {
         // If c is anything else, it is ignored
     }
 
+
     // Grab the total from the receipt being processed, make it a float64
     totalPrice, err := strconv.ParseFloat(receipt.Total, 64)
     // If there's no error from the ParseFloat function
@@ -146,12 +161,18 @@ func tallyPoints( receipt Receipt ) int {
       if math.Mod(totalPrice, 0.25) == 0.0 {
           totalPoints += 25
       }
+      // If there was an error,
+    } else {
+      return -1
+      // Return -1 to the calling function indicating an error during processing
     }
+
 
     // Using integer division, the number of items divided by two is the number
     // of pairs not including any odd items, and then multiply by 5 Points
     // and add this multiple to totalPoints
     totalPoints += ( len(receipt.Items) / 2 ) * 5
+
 
     // Iterate through all the items in the receipt being processed
     for n := 0; n < len(receipt.Items) ; n++ {
@@ -169,34 +190,62 @@ func tallyPoints( receipt Receipt ) int {
           // Take the ceiling (round up to nearest integer) of the Price
           // multiplied by 0.2 and convert to an int and add to totalPoints
           totalPoints += int(math.Ceil(price * 0.2))
+          // If there was an error,
+        } else {
+          // Return -1 to the calling function, indicating an error during processing
+          return -1
         }
       }
     }
 
+
     // Split the date on hyphen and make it into an array
     var date = strings.Split(receipt.PurchaseDate, "-")
-    // Convert the day value to an integer
-    day, err := strconv.Atoi(date[2])
-    // If there's no error coming from the Atoi function
-    if err == nil {
-      // Test if the modulus of day and 2 is not zero (meaning day is odd)
-      if day % 2 != 0 {
-        // If so, add 6 Points to totalPoints
-        totalPoints += 6
+    // If the date is correctly formatted (3 numbers split by two hyphens)
+    if len(date) == 3 {
+      // Convert the day value to an integer
+      day, err := strconv.Atoi(date[2])
+      // If there's no error coming from the Atoi function
+      if err == nil {
+        // Test if the modulus of day and 2 is not zero (meaning day is odd)
+        if day % 2 != 0 {
+          // If so, add 6 Points to totalPoints
+          totalPoints += 6
+        }
+        // If there was an error,
+      } else {
+        // Return -1 to the calling function, indicating an error during processing
+        return -1
       }
+    // If the date was not correctly formatted,
+    } else {
+      // Return -1 to the calling function, indicating an error during processing
+      return -1
     }
+
 
     // Split the time on semicolon and make it into an array
     var time = strings.Split(receipt.PurchaseTime, ":")
-    // Convert the hour value to an integer
-    hour, err := strconv.Atoi(time[0])
-    // If there's no error coming from the Atoi function
-    if err == nil {
-      // Test if the hour is between 2PM and 4PM (1400 hours and 1600 hours)
-      if hour >= 14 && hour <= 16 {
-        // If so, add 10 points to totalPoints
-        totalPoints += 10
+    // If the time is correctly formatted (two numbers split by a semicolon)
+    if len(time) == 2 {
+      // Convert the hour value to an integer
+      hour, err := strconv.Atoi(time[0])
+      // If there's no error coming from the Atoi function
+      if err == nil {
+        // Test if the hour is between 2PM and 4PM (1400 hours and 1600 hours)
+        if hour >= 14 && hour <= 16 {
+          // If so, add 10 points to totalPoints
+          totalPoints += 10
+        }
+        // If there was an error,
+      } else {
+        // Return -1 to the calling function, indicating an error during processing
+        return -1
       }
+    // If the time is not correctly formatted,
+    } else {
+      // Return -1 to the calling function, indicating an error during processing
+      return -1
     }
 
     // Return the number of total points for the receipt being processed
