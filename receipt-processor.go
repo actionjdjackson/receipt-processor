@@ -39,7 +39,7 @@ type Points struct {
   Points int `json:"points"`
 }
 
-// Declare a var for storing processed receipts
+// Declare a var map for storing processed receipts
 var receipts map[string]Receipt
 
 // The main function
@@ -53,34 +53,33 @@ func main() {
 
     // Handle incoming POST requests on /receipts/process
     r.HandleFunc("/receipts/process", func(w http.ResponseWriter, r *http.Request) {
-        // Set up a receipt var
-        var receipt Receipt
-        // Decode the POSTed JSON object and store the values in receipt
-        json.NewDecoder(r.Body).Decode(&receipt)
-        // Process the receipt and store returned id value in var id
-        var id string = processReceipt(receipt)
-        // Create the id struct with the value of id
-        receiptId := Id { Id: id }
-        // Make JSON version of the struct, and write to http.ResponseWriter
-        json.NewEncoder(w).Encode(receiptId)
-
+      // Set up a receipt var
+      var receipt Receipt
+      // Decode the POSTed JSON object and store the values in receipt
+      json.NewDecoder(r.Body).Decode(&receipt)
+      // Process the receipt and store returned id value in var id
+      var id string = processReceipt(receipt)
+      // Create the id struct with the value of id
+      receiptId := Id { Id: id }
+      // Make JSON version of the struct, and write to http.ResponseWriter
+      json.NewEncoder(w).Encode(receiptId)
     })
 
     // Handle incoming GET requests on /receipts/{id}/points
     r.HandleFunc("/receipts/{id}/points", func(w http.ResponseWriter, r *http.Request) {
-        // Grab the id from the requested route
-        vars := mux.Vars(r)
-        id := vars["id"]
-        // If the id exists in the receipts map...
-        if _, ok := receipts[id]; ok {
-          // Create the Points struct for the given receipt id
-          receiptPoints := Points { Points: receipts[id].Points }
-          // Make a JSON version of the Points struct and write to http.ResponseWriter
-          json.NewEncoder(w).Encode(receiptPoints)
-        } else {
-          fmt.Fprintf(w, "Requested receipt id %s was not found in the stored" +
-            " processed receipts", id)
-        }
+      // Grab the id from the requested route
+      vars := mux.Vars(r)
+      id := vars["id"]
+      // If the id exists in the receipts map...
+      if _, ok := receipts[id]; ok {
+        // Create the Points struct for the given receipt id
+        receiptPoints := Points { Points: receipts[id].Points }
+        // Make a JSON version of the Points struct and write to http.ResponseWriter
+        json.NewEncoder(w).Encode(receiptPoints)
+      } else {
+        fmt.Fprintf(w, "Requested receipt id %s was not found in the stored" +
+          " processed receipts", id)
+      }
     })
 
     // Listen on port 80 on localhost
@@ -96,8 +95,8 @@ func processReceipt( receipt Receipt ) string {
     receiptId := String(32)
     // If, by some off chance we already have the same id in use in the map,
     if _, ok := receipts[receiptId]; ok {
-        // Make a new random string to replace it
-        receiptId = String(32)
+      // Make a new random string to replace it
+      receiptId = String(32)
     }
     // Third, store the receipt in the receipts map with the id as key to the map
     receipts[receiptId] = receipt
@@ -115,21 +114,21 @@ func tallyPoints( receipt Receipt ) int {
     var retailer string = receipt.Retailer
     // Iterate over all the characters in the retailer's name
     for n := 0; n < len(retailer); n++ {
-        // c is the character in question
-        c := retailer[n]
+      // c is the character in question
+      c := retailer[n]
 
-        // If c is between A and Z, increment totalPoints by one
-        if c >= 'A' && c <= 'Z' {
-            totalPoints++
-        }
-        // If c is between a and z, increment totalPoints by one
-        if c >= 'a' && c <= 'z' {
-            totalPoints++
-        }
-        // If c is between 0 and 9, increment totalPoints by one
-        if c >= '0' && c <= '9' {
-            totalPoints++
-        }
+      // If c is between A and Z, increment totalPoints by one
+      if c >= 'A' && c <= 'Z' {
+          totalPoints++
+      }
+      // If c is between a and z, increment totalPoints by one
+      if c >= 'a' && c <= 'z' {
+          totalPoints++
+      }
+      // If c is between 0 and 9, increment totalPoints by one
+      if c >= '0' && c <= '9' {
+          totalPoints++
+      }
         // If c is anything else, it is ignored
     }
 
@@ -137,16 +136,16 @@ func tallyPoints( receipt Receipt ) int {
     totalPrice, err := strconv.ParseFloat(receipt.Total, 64)
     // If there's no error from the ParseFloat function
     if err == nil {
-        // If the float64 and integer values are identical, add 50 Points
-        // to totalPoints because this means it's a whole dollar amount
-        if totalPrice == float64(int(totalPrice)) {
-            totalPoints += 50
-        }
-        // If the modulus of the total divided by 0.25 is zero, this means
-        // it is a multiple of 0.25, and thus we add 25 Points to totalPoints
-        if math.Mod(totalPrice, 0.25) == 0.0 {
-            totalPoints += 25
-        }
+      // If the float64 and integer values are identical, add 50 Points
+      // to totalPoints because this means it's a whole dollar amount
+      if totalPrice == float64(int(totalPrice)) {
+          totalPoints += 50
+      }
+      // If the modulus of the total divided by 0.25 is zero, this means
+      // it is a multiple of 0.25, and thus we add 25 Points to totalPoints
+      if math.Mod(totalPrice, 0.25) == 0.0 {
+          totalPoints += 25
+      }
     }
 
     // Using integer division, the number of items divided by two is the number
@@ -156,22 +155,22 @@ func tallyPoints( receipt Receipt ) int {
 
     // Iterate through all the items in the receipt being processed
     for n := 0; n < len(receipt.Items) ; n++ {
-        // Create an item to work with, taking the nth one from the array
-        var item = receipt.Items[n]
-        // Trim the extra whitespace off the short description of the item
-        trimmedDescription := strings.TrimSpace(item.ShortDescription)
-        // If the length of the trimmed description is evenly divisible by 3
-        // (it's a multiple of 3)
-        if len(trimmedDescription) % 3 == 0 {
-            // Grab the item price and convert to a float64
-            price, err := strconv.ParseFloat(item.Price, 64)
-            // If no error was thrown on the ParseFloat function
-            if err == nil {
-                // Take the ceiling (round up to nearest integer) of the Price
-                // multiplied by 0.2 and convert to an int and add to totalPoints
-                totalPoints += int(math.Ceil(price * 0.2))
-            }
+      // Create an item to work with, taking the nth one from the array
+      var item = receipt.Items[n]
+      // Trim the extra whitespace off the short description of the item
+      trimmedDescription := strings.TrimSpace(item.ShortDescription)
+      // If the length of the trimmed description is evenly divisible by 3
+      // (it's a multiple of 3)
+      if len(trimmedDescription) % 3 == 0 {
+        // Grab the item price and convert to a float64
+        price, err := strconv.ParseFloat(item.Price, 64)
+        // If no error was thrown on the ParseFloat function
+        if err == nil {
+          // Take the ceiling (round up to nearest integer) of the Price
+          // multiplied by 0.2 and convert to an int and add to totalPoints
+          totalPoints += int(math.Ceil(price * 0.2))
         }
+      }
     }
 
     // Split the date on hyphen and make it into an array
@@ -180,11 +179,11 @@ func tallyPoints( receipt Receipt ) int {
     day, err := strconv.Atoi(date[2])
     // If there's no error coming from the Atoi function
     if err == nil {
-        // Test if the modulus of day and 2 is not zero (meaning day is odd)
-        if day % 2 != 0 {
-          // If so, add 6 Points to totalPoints
-          totalPoints += 6
-        }
+      // Test if the modulus of day and 2 is not zero (meaning day is odd)
+      if day % 2 != 0 {
+        // If so, add 6 Points to totalPoints
+        totalPoints += 6
+      }
     }
 
     // Split the time on semicolon and make it into an array
@@ -193,11 +192,11 @@ func tallyPoints( receipt Receipt ) int {
     hour, err := strconv.Atoi(time[0])
     // If there's no error coming from the Atoi function
     if err == nil {
-        // Test if the hour is between 2PM and 4PM (1400 hours and 1600 hours)
-        if hour >= 14 && hour <= 16 {
-            // If so, add 10 points to totalPoints
-            totalPoints += 10
-        }
+      // Test if the hour is between 2PM and 4PM (1400 hours and 1600 hours)
+      if hour >= 14 && hour <= 16 {
+        // If so, add 10 points to totalPoints
+        totalPoints += 10
+      }
     }
 
     // Return the number of total points for the receipt being processed
