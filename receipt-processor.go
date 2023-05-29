@@ -1,7 +1,7 @@
 package main
 
 import (
-    //"fmt"
+    "fmt"
     "net/http"
     "encoding/json"
     "math/rand"
@@ -71,12 +71,16 @@ func main() {
         // Grab the id from the requested route
         vars := mux.Vars(r)
         id := vars["id"]
-        // Create the Points struct for the given receipt id
-        receiptPoints := Points { Points: receipts[id].Points }
-        // Make a JSON version of the Points struct and write to http.ResponseWriter
-        json.NewEncoder(w).Encode(receiptPoints)
-        // Some debug stuff
-        //fmt.Fprintf(w, "You requested receipt number %s\n", id)
+        // If the id exists in the receipts map...
+        if _, ok := receipts[id]; ok {
+          // Create the Points struct for the given receipt id
+          receiptPoints := Points { Points: receipts[id].Points }
+          // Make a JSON version of the Points struct and write to http.ResponseWriter
+          json.NewEncoder(w).Encode(receiptPoints)
+        } else {
+          fmt.Fprintf(w, "Requested receipt id %s was not found in the stored" +
+            " processed receipts", id)
+        }
     })
 
     // Listen on port 80 on localhost
@@ -90,6 +94,11 @@ func processReceipt( receipt Receipt ) string {
     receipt.Points = tallyPoints(receipt)
     // Second, create a random string of characters and numbers and dashes
     receiptId := String(32)
+    // If, by some off chance we already have the same id in use in the map,
+    if _, ok := receipts[receiptId]; ok {
+        // Make a new random string to replace it
+        receiptId = String(32)
+    }
     // Third, store the receipt in the receipts map with the id as key to the map
     receipts[receiptId] = receipt
     // Finally, return the id to the main function
@@ -212,7 +221,7 @@ func StringWithCharset(length int, charset string) string {
   return string(b)
 }
 
-// Make a string of a particular length, using the  charset defined above
+// Make a string of a particular length, using the charset defined above
 func String(length int) string {
   return StringWithCharset(length, charset)
 }

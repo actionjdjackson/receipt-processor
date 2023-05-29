@@ -1,5 +1,8 @@
 # actionjdjackson/receipt-processor
 
+I'm super excited about this programming challenge! I just learned Go over the
+last two days, and have successfully developed my receipt processor and it works!
+
 ### To run the app as a docker container
 To run this app as a docker container, browse to this directory and run:
 ```
@@ -119,4 +122,9 @@ which should return an id value like this:
 and you can find the points value from command line (or in any browser) like this:
 ```
 curl http://localhost/receipts/8AiHS1AhkDNOmIPEvKYTgwPQ4Yfp0oNf/points
+```
+
+which should return a points value like this:
+```json
+{"points":28}
 ```
