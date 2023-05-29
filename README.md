@@ -1,4 +1,4 @@
-# receipt-processor
+# actionjdjackson/receipt-processor
 
 ### To run the app as a docker container
 To run this app as a docker container, browse to this directory and run:
