@@ -64,6 +64,7 @@ func main() {
         fmt.Fprintf(w, "Error Encountered During Processing of Receipt Data." +
                        " Receipt not stored. Expected a parseable number," +
                        " time, or date.")
+      // Otherwise, if no error,
       } else {
         // Create the id struct with the value of id
         receiptId := Id { Id: id }
