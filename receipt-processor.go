@@ -125,6 +125,8 @@ func tallyPoints( receipt Receipt ) int {
     var totalPoints int = 0
 
 
+    // Rule 1: One point for every alphanumeric character in the retailer name
+
     // Grab the retailer string from the receipt being processed
     var retailer string = receipt.Retailer
     // Iterate over all the characters in the retailer's name
@@ -148,6 +150,9 @@ func tallyPoints( receipt Receipt ) int {
     }
 
 
+    // Rule 2: 50 Points if the total is a round dollar amount,
+    // Rule 3: 25 Points if the total is a multiple of 0.25
+
     // Grab the total from the receipt being processed, make it a float64
     totalPrice, err := strconv.ParseFloat(receipt.Total, 64)
     // If there's no error from the ParseFloat function
@@ -169,11 +174,17 @@ func tallyPoints( receipt Receipt ) int {
     }
 
 
+    // Rule 4: 5 Points for every two items on the receipt
+
     // Using integer division, the number of items divided by two is the number
     // of pairs not including any odd items, and then multiply by 5 Points
     // and add this multiple to totalPoints
     totalPoints += ( len(receipt.Items) / 2 ) * 5
 
+
+    // Rule 5: IF trimmed length of item description is a multiple of 3,
+    // multiply th price by 0.2 and round up to hte nearest integer, add this
+    // to the total number of points earned
 
     // Iterate through all the items in the receipt being processed
     for n := 0; n < len(receipt.Items) ; n++ {
@@ -200,6 +211,8 @@ func tallyPoints( receipt Receipt ) int {
     }
 
 
+    // Rule 6: 6 Points if the day of the purchase is odd
+
     // Split the date on hyphen and make it into an array
     var date = strings.Split(receipt.PurchaseDate, "-")
     // If the date is correctly formatted (3 numbers split by two hyphens)
@@ -225,6 +238,8 @@ func tallyPoints( receipt Receipt ) int {
     }
 
 
+    // Rule 7: 10 Points if the time of purchase is after 2pm and before 4pm
+    
     // Split the time on semicolon and make it into an array
     var time = strings.Split(receipt.PurchaseTime, ":")
     // If the time is correctly formatted (two numbers split by a semicolon)
