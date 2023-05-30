@@ -12,7 +12,7 @@ import (
     "github.com/gorilla/mux"
 )
 
-// Set up a Receipt struct that takes json values, and a Points value as well
+// Set up a Receipt struct that takes JSON values, and a Points value as well
 type Receipt struct {
   Retailer string `json:"retailer"`
   PurchaseDate string `json:"purchaseDate"`
@@ -23,7 +23,7 @@ type Receipt struct {
 }
 
 // Set up an Item struct which is referenced by Receipt as an array of Items
-// Also taking json values
+// Also taking JSON values
 type Item struct {
   ShortDescription string `json:"shortDescription"`
   Price string `json:"price"`
@@ -151,7 +151,7 @@ func tallyPoints( receipt Receipt ) int {
 
 
     // Rule 2: 50 Points if the total is a round dollar amount,
-    // Rule 3: 25 Points if the total is a multiple of 0.25
+    // & Rule 3: 25 Points if the total is a multiple of 0.25
 
     // Grab the total from the receipt being processed, make it a float64
     totalPrice, err := strconv.ParseFloat(receipt.Total, 64)
@@ -182,8 +182,8 @@ func tallyPoints( receipt Receipt ) int {
     totalPoints += ( len(receipt.Items) / 2 ) * 5
 
 
-    // Rule 5: IF trimmed length of item description is a multiple of 3,
-    // multiply th price by 0.2 and round up to hte nearest integer, add this
+    // Rule 5: If the trimmed length of item description is a multiple of 3,
+    // multiply th price by 0.2 and round up to the nearest integer, add this
     // to the total number of points earned
 
     // Iterate through all the items in the receipt being processed
@@ -239,7 +239,7 @@ func tallyPoints( receipt Receipt ) int {
 
 
     // Rule 7: 10 Points if the time of purchase is after 2pm and before 4pm
-    
+
     // Split the time on semicolon and make it into an array
     var time = strings.Split(receipt.PurchaseTime, ":")
     // If the time is correctly formatted (two numbers split by a semicolon)
